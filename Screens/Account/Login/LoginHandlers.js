@@ -21,7 +21,6 @@ export const onLoginButtonPress = async (args, onUserLogged) => {
       email: "Invalid user or password",
       password: "Invalid user or password",
     });
-    console.log(result.error);
   } else {
     onUserLogged();
   }

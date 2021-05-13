@@ -3,7 +3,6 @@ import React, { useCallback, useState } from "react";
 import { StyleSheet, Text } from "react-native";
 import { Avatar } from "react-native-elements";
 import { AppContainer } from "../../../Components/Containers/AppContainer";
-import { AppView } from "../../../Components/Containers/AppView";
 import { AppIcon } from "../../../Components/Icons/AppIcon";
 import { IconsContainer } from "../../../Components/Icons/IconsContainer";
 import { RoleSelect } from "../../../Components/Inputs/RoleSelect";
@@ -13,10 +12,10 @@ import {
   onDeleteIconPress,
   onParticipantRoleChanged,
 } from "./ParticipantInfoHandlers";
-import { View } from "react-native";
 import { InfoItem } from "../../../Components/ListItems/InfoItem";
 
-export default function ParticipantInfoComponent({ route, role }) {
+export default function ParticipantInfoComponent({ route }) {
+  const role = route.params.role;
   const navigation = useNavigation();
   useFocusEffect(
     useCallback(() => {
@@ -32,7 +31,7 @@ export default function ParticipantInfoComponent({ route, role }) {
             }
           />
         ),
-        title: participant.userId,
+        title: participant.name,
       });
     }, [])
   );
@@ -40,7 +39,7 @@ export default function ParticipantInfoComponent({ route, role }) {
   const [loading, setLoading] = useState(false);
   const [key, setKey] = useState(false);
   const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)$/;
-  const names = user.displayName && user.displayName.match(namesRegex);
+  const names = participant.name && participant.name.match(namesRegex);
   return (
     <AppContainer key={key} style={styles.container}>
       <Avatar

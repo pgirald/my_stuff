@@ -5,6 +5,7 @@ import AppObjectListComponent from "../../Components/General/AppObectList/AppObj
 import { isEmpty } from "lodash";
 import TaskItem from "../../Components/ListItems/TaskItem";
 import { addTask, getTasks } from "../../Utils/Persistence/Actions";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function TasksListScreen({
   activitiesRoute,

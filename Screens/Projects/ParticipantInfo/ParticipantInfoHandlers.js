@@ -59,6 +59,7 @@ export function onDeleteIconPress(args, participant, navigation, role) {
   }
   if (role !== "owner") {
     Alert.alert("Error", "Only the project owner can eject a participant");
+    return;
   }
   Alert.alert(
     "Wait!",

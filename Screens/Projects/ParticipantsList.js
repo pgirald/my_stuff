@@ -14,7 +14,7 @@ import { RoleSelect } from "../../Components/Inputs/RoleSelect";
 import { EmailInput } from "../../Components/Inputs/EmailInput";
 import { Alert } from "react-native";
 
-export default function ParticipantsList({ navigation, project }) {
+export default function ParticipantsList({ navigation, project, role }) {
   useFocusEffect(
     useCallback(() => {
       navigation.setOptions({ title: "Participants", headerRight: null });
@@ -36,6 +36,7 @@ export default function ParticipantsList({ navigation, project }) {
           onPress={(participant) =>
             navigation.navigate("ParticipantInfo", {
               participant: participant,
+              role: role,
             })
           }
         />

@@ -15,7 +15,6 @@ export async function onAddProjectBtnPress(
     await reload();
     modalRef.current.show(false);
   } else {
-    console.log(result.error);
     Alert.alert("Error", "The addition could not be done");
   }
 }
@@ -28,7 +27,6 @@ export async function onFocus(args, navigation, objectsLimit, getObjects) {
     args.setObjects(result.objects);
     args.setStartObject(result.start);
   } else {
-    console.log(result.error);
     Alert.alert("Error", "Error while getting the data");
     navigation.goBack();
   }

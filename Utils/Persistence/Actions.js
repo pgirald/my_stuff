@@ -54,7 +54,6 @@ export const uploadFile = async (fileUri, path, name) => {
   const result = { successful: false, error: null, url: null };
   const reference = firebase.storage().ref(path).child(name);
   const blob = await fileToBlob(fileUri);
-
   try {
     await reference.put(blob);
     const url = await firebase

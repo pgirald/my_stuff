@@ -39,16 +39,6 @@ export default function MenuScreen({ onUserSingOut }) {
         <Logo source={require("../../assets/logo.png")} style={styles.logo} />
         <AppView style={{ flexDirection: "row" }}>
           <AppButton
-            style={styles.statisticsBtn}
-            icon={
-              <AppIcon
-                name="poll"
-                color={appColors.white}
-                size={screenWidth * 0.3}
-              />
-            }
-          />
-          <AppButton
             style={styles.accountBtn}
             onPress={() => navigation.navigate("Account")}
             icon={
@@ -92,13 +82,6 @@ export default function MenuScreen({ onUserSingOut }) {
 const getStyles = (size, ref) => {
   return StyleSheet.create({
     logo: { height: size * 0.5, width: size * 0.6 },
-    statisticsBtn: {
-      height: size * 0.43,
-      width: size * 0.43,
-      borderRadius: 180,
-      marginLeft: 20,
-      backgroundColor: appColors.bermuda,
-    },
     accountBtn: {
       height: size * 0.38,
       width: size * 0.38,
