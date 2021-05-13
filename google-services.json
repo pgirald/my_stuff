@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1040143400531",
+    "project_id": "my-new-stuff-6f787",
+    "storage_bucket": "my-new-stuff-6f787.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040143400531:android:f65f11f611ea14d8d390a6",
+        "android_client_info": {
+          "package_name": "com.theodoro.myStuff"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1040143400531-g9ik9ds736lq4ol1dcvea6cp000htms6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwR-Nj0_nw5lfSmKYeMMYTtRXiMin4pRc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1040143400531-g9ik9ds736lq4ol1dcvea6cp000htms6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

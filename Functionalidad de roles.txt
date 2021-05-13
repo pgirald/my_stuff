@@ -1,0 +1,12 @@
+-Validar, del lado del servidor, que el usuario que desea eliminarse no sea el dueño del
+proyecto, en caso de que asi sea, no permitir que se haga la operación.
+
+-Permitir, únicamente, actualizar roles de usuario a administradores o al dueño del
+proyecto.
+
+-Permitir, únicamente, eliminar administradores al dueño del proyecto.
+
+-No permitir expulsar usuarios a los invitados del proyectos.
+
+-Permitir, únicamente, dar por hecha una actividad el proyecto a un participante de
+ella, a un administrador o al dueño del proyecto.
