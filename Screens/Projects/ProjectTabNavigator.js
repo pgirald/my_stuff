@@ -1,14 +1,14 @@
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import ProjectInfoScreen from "./ProjectInfo/ProjectInfoScreen";
 import { appColors } from "../../Components/Styles/Colors";
 import { AppIcon } from "../../Components/Icons/AppIcon";
-import ProjectNotificationsScreen from "./ProjectNotifications/ProjectNotificationsScreen";
 import ActivitiesListScreen from "../Activities/ActivitiesListScreen";
 import AttachmentsScreen from "../../Components/General/Attachments/AttachmentsScreen";
 import ParticipantsList from "./ParticipantsList";
+import Notifications from "./Notifications";
 
 const Tab = createBottomTabNavigator();
 
@@ -86,7 +86,9 @@ export default function ProjectTabNavigator({ route }) {
       />
       <Tab.Screen
         name="Notifications"
-        children={() => <ProjectNotificationsScreen navigation={navigation} />}
+        children={() => (
+          <Notifications navigation={navigation} projectId={project.id} />
+        )}
       />
       <Tab.Screen
         name="ActivitiesList"

@@ -1,6 +1,7 @@
 import { Alert } from "react-native";
 import {
   ejectParticipant,
+  getCurrentUser,
   updateParticipantRole,
 } from "../../../Utils/Persistence/Actions";
 
@@ -36,7 +37,7 @@ async function onUpdateConfirm(args, participant, newRole) {
   args.setLoading(true);
   const result = await updateParticipantRole(
     participant.projectId,
-    participant.id,
+    participant,
     newRole
   );
   args.setLoading(false);
@@ -57,7 +58,7 @@ export function onDeleteIconPress(args, participant, navigation, role) {
     Alert.alert("Error", "The project owner cannot be deleted");
     return;
   }
-  if (role !== "owner") {
+  if (role !== "owner" && participant.email !== getCurrentUser().email) {
     Alert.alert("Error", "Only the project owner can eject a participant");
     return;
   }
@@ -76,11 +77,15 @@ export function onDeleteIconPress(args, participant, navigation, role) {
 
 async function onDeleteConfirm(args, participant, navigation) {
   args.setLoading(true);
-  const result = await ejectParticipant(participant.projectId, participant.id);
+  const result = await ejectParticipant(participant.projectId, participant);
   args.setLoading(false);
   if (result.successful) {
     Alert.alert("Nice!", "The participant role was successfully deleted");
-    navigation.goBack();
+    if (participant.email !== getCurrentUser().email) {
+      navigation.goBack();
+    } else {
+      navigation.pop(2);
+    }
   } else {
     Alert.alert("Error", "There was an error while removing the participant");
   }

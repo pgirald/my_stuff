@@ -560,12 +560,22 @@ export const acceptRequest = async (acceptedRequest) => {
   const acceptedRequestDocRef = db
     .collection("Requests")
     .doc(acceptedRequest.id);
+  const newNotificationDocRef = db
+    .collection("Projects")
+    .doc(acceptedRequest.projectId)
+    .collection("Notifications")
+    .doc();
   const batch = db.batch();
   batch.set(
     newParticipantDocRef,
     generateParticipant(acceptedRequest.projectId, acceptedRequest.proposedRole)
   );
   batch.delete(acceptedRequestDocRef);
+  batch.set(newNotificationDocRef, {
+    projectId: acceptedRequest.projectId,
+    creationDate: new Date(),
+    text: acceptedRequest.receiverEmail + " has joined",
+  });
   try {
     await batch.commit();
   } catch (error) {
@@ -575,26 +585,67 @@ export const acceptRequest = async (acceptedRequest) => {
   return result;
 };
 
-export const ejectParticipant = async (projectId, participantId) => {
-  const participantsCollectionRef = db
+export const ejectParticipant = async (projectId, participant) => {
+  const result = { successful: true, error: null };
+  const participantDocRef = db
     .collection("Projects")
     .doc(projectId)
-    .collection("ProjectParticipants");
-  return await deleteDocument(participantsCollectionRef, participantId);
+    .collection("ProjectParticipants")
+    .doc(participant.id);
+  const newNotificationDocRef = db
+    .collection("Projects")
+    .doc(projectId)
+    .collection("Notifications")
+    .doc();
+  const batch = db.batch();
+  batch.delete(participantDocRef);
+  batch.set(newNotificationDocRef, {
+    projectId: projectId,
+    creationDate: new Date(),
+    text:
+      participant.email === getCurrentUser().email
+        ? participant.email + " has left"
+        : participant.email + " has been ejected",
+  });
+  try {
+    await batch.commit();
+  } catch (error) {
+    result.successful = false;
+    result.error = error;
+  }
+  return result;
 };
 
 export const updateParticipantRole = async (
   projectId,
-  participantId,
+  participant,
   newRole
 ) => {
-  const participantsCollectionRef = db
+  const result = { successful: true, error: null };
+  const participantDocRef = db
     .collection("Projects")
     .doc(projectId)
-    .collection("ProjectParticipants");
-  return await updateDocument(participantsCollectionRef, participantId, {
-    role: newRole,
+    .collection("ProjectParticipants")
+    .doc(participant.id);
+  const newNotificationDocRef = db
+    .collection("Projects")
+    .doc(projectId)
+    .collection("Notifications")
+    .doc();
+  const batch = db.batch();
+  batch.update(participantDocRef, { role: newRole });
+  batch.set(newNotificationDocRef, {
+    projectId: projectId,
+    creationDate: new Date(),
+    text: participant.email + " is now a " + newRole,
   });
+  try {
+    await batch.commit();
+  } catch (error) {
+    result.successful = false;
+    result.error = error;
+  }
+  return result;
 };
 
 export const getRequests = async (limit, start) => {
@@ -668,4 +719,25 @@ const isRequestEmailValid = async (requestEmail, projectId) => {
 
 export const denyRequest = async (requestId) => {
   return await deleteDocument(db.collection("Requests"), requestId);
+};
+
+export const getNotifications = async (projectId, limit, start) => {
+  return await getPagedData(getNotificationsQuery(projectId, limit, start));
+};
+
+const getNotificationsQuery = (projectId, limit, start) => {
+  return start
+    ? db
+        .collection("Projects")
+        .doc(projectId)
+        .collection("Notifications")
+        .orderBy("creationDate", "desc")
+        .startAfter(start.creationDate)
+        .limit(limit)
+    : db
+        .collection("Projects")
+        .doc(projectId)
+        .collection("Notifications")
+        .orderBy("creationDate", "desc")
+        .limit(limit);
 };

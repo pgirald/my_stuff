@@ -34,6 +34,7 @@ export default function AccountInfoScreen() {
       headerRight: () => (
         <AppIcon
           name="account-arrow-right"
+          color={appColors.white}
           size={50}
           onPress={() => onOutIconPress(undefined, navigation)}
         />
