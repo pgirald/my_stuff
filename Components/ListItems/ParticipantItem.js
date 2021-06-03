@@ -16,7 +16,9 @@ export default function ParticipantItem({ participant, onPress = () => {} }) {
             rounded={true}
             size="medium"
             source={
-              participant.photoUrl || require("../../assets/avatar-default.jpg")
+              participant.photoUrl
+                ? { uri: participant.photoUrl }
+                : require("../../assets/avatar-default.jpg")
             }
             renderPlaceholderContent={
               <View style={{ alignItems: "center", justifyContent: "center" }}>

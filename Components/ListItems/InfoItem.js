@@ -21,29 +21,31 @@ export function InfoItem({
         width: "100%",
       }}
     >
-      <View style={leftContainerStyle}>
-        <Text
-          style={{
-            marginLeft: 10,
-            marginTop: 10,
-            marginBottom: 5,
-            fontSize: 15,
-          }}
-        >
-          {title}
-        </Text>
-        <Text
-          style={{
-            color: appColors.silver,
-            marginLeft: 10,
-            marginBottom: 5,
-            fontSize: 12,
-          }}
-        >
-          {content}
-        </Text>
+      <View style={{ flexDirection: "row" }}>
+        <View style={leftContainerStyle}>
+          <Text
+            style={{
+              marginLeft: 10,
+              marginTop: 10,
+              marginBottom: 5,
+              fontSize: 15,
+            }}
+          >
+            {title}
+          </Text>
+          <Text
+            style={{
+              color: appColors.silver,
+              marginLeft: 10,
+              marginBottom: 5,
+              fontSize: 12,
+            }}
+          >
+            {content}
+          </Text>
+        </View>
+        {right}
       </View>
-      {right}
     </AppView>
   );
 }

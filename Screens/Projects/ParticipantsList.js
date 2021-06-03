@@ -37,6 +37,7 @@ export default function ParticipantsList({ navigation, project, role }) {
             navigation.navigate("ParticipantInfo", {
               participant: participant,
               role: role,
+              project: project,
             })
           }
         />

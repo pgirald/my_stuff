@@ -176,18 +176,19 @@ export const addProject = async (project) => {
 };
 
 const generateParticipant = (projectId, role) => {
+  const user = getCurrentUser();
   const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)/;
   const names = user.displayName && user.displayName.match(namesRegex);
   const phoneRegex = /\+([0-9]+) ([0-9]+) ([A-Z]+)$/;
   const phone = user.displayName && user.displayName.match(phoneRegex);
   return {
     projectId: projectId,
-    email: getCurrentUser().email,
+    email: user.email,
     role: role,
     creationDate: new Date(),
-    name: names && names[1] + names[2],
+    name: names && names[1] + "@" + names[2],
     phone: phone && "+" + phone[1] + " " + phone[2],
-    photoUrl: getCurrentUser().photoURL,
+    photoUrl: user.photoURL,
   };
 };
 
