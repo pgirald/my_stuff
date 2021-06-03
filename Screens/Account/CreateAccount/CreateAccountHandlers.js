@@ -17,6 +17,7 @@ export async function onAvatarPress(args) {
 }
 
 export async function onConfirmBtnPress(args, navigation) {
+  console.log("erda");
   args.setValidateInputs(true);
   if (
     isEmpty(args.formInputs.email) ||
@@ -46,18 +47,20 @@ export async function onConfirmBtnPress(args, navigation) {
     }
   }
   const data = {
-    phoneNumber:
-      args.formInputs.phone &&
-      "+" +
-        args.formInputs.phone.callingCode +
-        " " +
-        args.formInputs.phone.number,
     photoURL: result.url,
     displayName:
       isEmpty(args.formInputs.firstNames) || isEmpty(args.formInputs.lastNames)
         ? undefined
         : args.formInputs.firstNames + "@" + args.formInputs.lastNames,
   };
+  args.formInputs.phone &&
+    (data.displayName +=
+      "+" +
+      args.formInputs.phone.callingCode +
+      " " +
+      args.formInputs.phone.number +
+      " " +
+      args.formInputs.phone.countryCode);
   if (Object.values(data).some((field) => !isEmpty(field))) {
     args.setLoadingText("Uploading additional data");
     result = await updateProfile(data);

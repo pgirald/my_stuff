@@ -80,14 +80,23 @@ export async function onConfirmBtnPress(
       return;
     }
   }
+
   const profileData = {
-    phoneNumber:
+    displayName:
+      isEmpty(args.profileData.firstNames) ||
+      isEmpty(args.profileData.lastNames)
+        ? undefined
+        : args.profileData.firstNames + "@" + args.profileData.lastNames,
+  };
+
+  args.profileData.phone &&
+    (profileData.displayName +=
       "+" +
       args.profileData.phone.callingCode +
       " " +
-      args.profileData.phone.number,
-    displayName: args.profileData.firstNames + "@" + args.profileData.lastNames,
-  };
+      args.profileData.phone.number +
+      " " +
+      args.profileData.phone.countryCode);
 
   if (args.avatarChanged) {
     args.setLoadingText("Updating profile photo");
@@ -121,9 +130,16 @@ export async function onConfirmBtnPress(
 
 function profileDataChanged(previus, current) {
   return (
-    "+" + previus.phone.callingCode + " " + previus.phone.number !==
-      current.phoneNumber ||
-    previus.firstNames + "@" + previus.lastNames !== current.displayName
+    previus.firstNames +
+      "@" +
+      previus.lastNames +
+      "+" +
+      previus.phone.callingCode +
+      " " +
+      previus.phone.number +
+      " " +
+      previus.phone.countryCode !==
+    current.displayName
   );
 }
 

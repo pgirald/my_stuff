@@ -38,7 +38,7 @@ export default function ParticipantInfoComponent({ route }) {
   const participant = route.params.participant;
   const [loading, setLoading] = useState(false);
   const [key, setKey] = useState(false);
-  const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)$/;
+  const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)/;
   const names = participant.name && participant.name.match(namesRegex);
   return (
     <AppContainer key={key} style={styles.container}>

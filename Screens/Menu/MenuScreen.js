@@ -24,7 +24,7 @@ export default function MenuScreen({ onUserSingOut }) {
         onUserSingOut();
         return;
       }
-      const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)$/;
+      const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)/;
       const names = user.displayName && user.displayName.match(namesRegex);
       navigation.setOptions({
         headerShown: true,

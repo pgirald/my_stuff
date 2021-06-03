@@ -238,12 +238,16 @@ function UpdateModal({ modalRef, navigation, args, defaultProfileData }) {
 
 const getDefaultProfileData = () => {
   const user = getCurrentUser();
-  const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)$/;
+  const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)/;
   const names = user.displayName && user.displayName.match(namesRegex);
-  const phoneRegex = /^\+([0-9])+ ([0-9])+$/;
-  const phone = user.phoneNumber && user.phoneNumber.match(phoneRegex);
+  const phoneRegex = /\+([0-9]+) ([0-9]+) ([A-Z]+)$/;
+  const phone = user.displayName && user.displayName.match(phoneRegex);
   return {
-    phone: { callingCode: phone && phone[1], number: phone && phone[2] },
+    phone: {
+      callingCode: phone && phone[1],
+      number: phone && phone[2],
+      countryCode: phone && phone[3],
+    },
     email: user.email,
     firstNames: names && names[1],
     lastNames: names && names[2],

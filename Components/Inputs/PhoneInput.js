@@ -14,12 +14,12 @@ export const PhoneInput = ({
   style = {},
   validate = false,
 }) => {
-  const [country, setCountry] = useState("CO");
+  const [country, setCountry] = useState(defaultValue.countryCode || "CO");
   const [callingCode, setCallingCode] = useState(
     defaultValue.callingCode || "57"
   );
   const [phoneNumber, setPhoneNumber] = useState(
-    defaultValue.phoneNumber || ""
+    defaultValue.number || ""
   );
   return (
     <View style={{ ...style, width: style.width || "100%" }}>
@@ -36,7 +36,11 @@ export const PhoneInput = ({
           onChange({
             phone: isEmpty(phoneNumber)
               ? undefined
-              : { callingCode: country.callingCode[0], number: phoneNumber },
+              : {
+                  countryCode: country.cca2,
+                  callingCode: country.callingCode[0],
+                  number: phoneNumber,
+                },
           });
         }}
       />
@@ -58,7 +62,7 @@ export const PhoneInput = ({
           onChange({
             phone: isEmpty(phoneNumberAux)
               ? undefined
-              : { callingCode, number: phoneNumberAux },
+              : { countryCode: country, callingCode, number: phoneNumberAux },
           });
         }}
         keyboardType="phone-pad"
