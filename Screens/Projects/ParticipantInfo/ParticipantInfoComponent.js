@@ -32,7 +32,13 @@ export default function ParticipantInfoComponent({ route }) {
             color={appColors.white}
             size={50}
             onPress={() =>
-              onDeleteIconPress({ setLoading }, participant, navigation, role)
+              onDeleteIconPress(
+                { setLoading, setLoadingMessage },
+                participant,
+                navigation,
+                role,
+                route.params.project
+              )
             }
           />
         ),
@@ -43,6 +49,7 @@ export default function ParticipantInfoComponent({ route }) {
   const participant = route.params.participant;
   const [loading, setLoading] = useState(false);
   const [key, setKey] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState(null);
   const namesRegex = /^([A-Za-z ]+)@([A-Za-z ]+)/;
   const names = participant.name && participant.name.match(namesRegex);
   const iconsProperties = [
@@ -93,10 +100,11 @@ export default function ParticipantInfoComponent({ route }) {
         <RoleSelect
           onRoleChanged={(newRole) => {
             onParticipantRoleChanged(
-              { setLoading, key, setKey },
+              { setLoading, setLoadingMessage, key, setKey },
               participant,
               newRole,
-              role
+              role,
+              route.params.project
             );
           }}
           containerStyle={{
@@ -160,7 +168,7 @@ export default function ParticipantInfoComponent({ route }) {
           </View>
         }
       />
-      <Loading isVisible={loading} />
+      <Loading isVisible={loading} text={loadingMessage} />
     </AppContainer>
   );
 }

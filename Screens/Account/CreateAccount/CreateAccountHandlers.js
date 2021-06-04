@@ -1,6 +1,7 @@
 import { VideoExportPreset } from "expo-image-picker";
 import { isEmpty } from "lodash";
 import { Alert } from "react-native";
+import { getPermissionsForNotifications } from "../../../Utils/General/Communication";
 import { loadImageFromGallery } from "../../../Utils/General/FilesManagement";
 import {
   getCurrentUser,
@@ -17,7 +18,6 @@ export async function onAvatarPress(args) {
 }
 
 export async function onConfirmBtnPress(args, navigation) {
-  console.log("erda");
   args.setValidateInputs(true);
   if (
     isEmpty(args.formInputs.email) ||
@@ -26,12 +26,14 @@ export async function onConfirmBtnPress(args, navigation) {
   ) {
     return;
   }
+  let result = await getPermissionsForNotifications();
+  if (!result.successful) {
+    Alert.alert(result.error);
+    return;
+  }
   args.setLoadingText("Registering user");
   args.setLoading(true);
-  let result = await registerUser(
-    args.formInputs.email,
-    args.formInputs.password
-  );
+  result = await registerUser(args.formInputs.email, args.formInputs.password);
   if (!result.successful) {
     args.setEmailError(result.error);
     args.setLoading(false);

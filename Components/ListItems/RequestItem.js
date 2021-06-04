@@ -2,10 +2,19 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { InfoItem } from "./InfoItem";
 import { AppIcon } from "../Icons/AppIcon";
-import { acceptRequest, denyRequest } from "../../Utils/Persistence/Actions";
+import {
+  acceptRequest,
+  denyRequest,
+  sendNotifications,
+} from "../../Utils/Persistence/Actions";
 import { Alert } from "react-native";
 
-export default function RequestItem({ request, setLoading, reload }) {
+export default function RequestItem({
+  request,
+  setLoading,
+  reload,
+  setLoadingMessage,
+}) {
   return (
     <InfoItem
       containerStyle={{ flexDirection: "row" }}
@@ -23,7 +32,9 @@ export default function RequestItem({ request, setLoading, reload }) {
         >
           <AppIcon
             name="check"
-            onPress={() => onCheckIconPress(setLoading, request, reload)}
+            onPress={() =>
+              onCheckIconPress(setLoading, request, reload, setLoadingMessage)
+            }
             size={50}
           />
           <AppIcon
@@ -38,9 +49,17 @@ export default function RequestItem({ request, setLoading, reload }) {
 }
 
 async function onCheckIconPress(setLoading, request, reload) {
+  setLoadingMessage("Accepting request");
   setLoading(true);
-  const result = await acceptRequest(request);
+  let result = await acceptRequest(request);
+  setLoadingMessage("Notifying to the project participants");
+  result = await sendNotifications(
+    request.projectId,
+    request.projectName,
+    request.receiverEmail + " has joined"
+  );
   setLoading(false);
+  setLoadingMessage(null);
   await reload();
   if (result.successful) {
     Alert.alert("Great!", "You have joined to " + request.projectName);

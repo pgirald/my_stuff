@@ -2,10 +2,17 @@ import { Alert } from "react-native";
 import {
   ejectParticipant,
   getCurrentUser,
+  sendNotifications,
   updateParticipantRole,
 } from "../../../Utils/Persistence/Actions";
 
-export function onParticipantRoleChanged(args, participant, newRole, role) {
+export function onParticipantRoleChanged(
+  args,
+  participant,
+  newRole,
+  role,
+  project
+) {
   if (role !== "owner") {
     Alert.alert(
       "Error",
@@ -20,7 +27,7 @@ export function onParticipantRoleChanged(args, participant, newRole, role) {
     [
       {
         text: "Yes",
-        onPress: () => onUpdateConfirm(args, participant, newRole),
+        onPress: () => onUpdateConfirm(args, participant, newRole, project),
       },
       {
         text: "No",
@@ -33,15 +40,25 @@ export function onParticipantRoleChanged(args, participant, newRole, role) {
   );
 }
 
-async function onUpdateConfirm(args, participant, newRole) {
+async function onUpdateConfirm(args, participant, newRole, project) {
+  args.setLoadingMessage("Changing role");
   args.setLoading(true);
   const result = await updateParticipantRole(
     participant.projectId,
     participant,
     newRole
   );
+  args.setLoadingMessage("Sending notifications");
+  const sendNotificationsResult = await sendNotifications(
+    project.id,
+    project.name,
+    participant.email + " is now a " + newRole
+  );
   args.setLoading(false);
-
+  args.setLoadingMessage(null);
+  if (!sendNotificationsResult.successful) {
+    Alert.alert("The notifications could not be sent");
+  }
   if (result.successful) {
     Alert.alert("Nice!", "The participant role was successfully updated");
   } else {
@@ -53,7 +70,13 @@ async function onUpdateConfirm(args, participant, newRole) {
   }
 }
 
-export function onDeleteIconPress(args, participant, navigation, role) {
+export function onDeleteIconPress(
+  args,
+  participant,
+  navigation,
+  role,
+  project
+) {
   if (participant.role === "owner") {
     Alert.alert("Error", "The project owner cannot be deleted");
     return;
@@ -68,17 +91,31 @@ export function onDeleteIconPress(args, participant, navigation, role) {
     [
       {
         text: "Yes",
-        onPress: () => onDeleteConfirm(args, participant, navigation),
+        onPress: () => onDeleteConfirm(args, participant, navigation, project),
       },
       { text: "No", style: "cancel" },
     ]
   );
 }
 
-async function onDeleteConfirm(args, participant, navigation) {
+async function onDeleteConfirm(args, participant, navigation, project) {
+  args.setLoadingMessage("Removing");
   args.setLoading(true);
   const result = await ejectParticipant(participant.projectId, participant);
+  args.setLoadingMessage("Sending notifications");
+  const sendNotificationsResult = await sendNotifications(
+    project.id,
+    project.name,
+    participant.email +
+      (getCurrentUser().email === participant.email
+        ? " has left"
+        : " has been ejected")
+  );
   args.setLoading(false);
+  args.setLoadingMessage(null);
+  if (!sendNotificationsResult.successful) {
+    Alert.alert("The notifications could not be sent");
+  }
   if (result.successful) {
     Alert.alert("Nice!", "The participant role was successfully deleted");
     if (participant.email !== getCurrentUser().email) {

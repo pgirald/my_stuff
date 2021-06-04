@@ -2,7 +2,11 @@ import { firebaseApp } from "./Firebase";
 import * as firebase from "firebase";
 import "firebase/firestore";
 import { fileToBlob } from "../General/FilesManagement";
-import { result } from "lodash";
+import {
+  getToken,
+  generateNotificationMessage,
+  sendPushNotification,
+} from "../General/Communication";
 
 //Storage link:
 // service firebase.storage {
@@ -30,7 +34,14 @@ export const closeSession = () => {
 export const registerUser = async (email, password) => {
   const result = { successful: true, error: null };
   try {
-    await firebase.auth().createUserWithEmailAndPassword(email, password);
+    const registeredUserId = (
+      await firebase.auth().createUserWithEmailAndPassword(email, password)
+    ).user.uid;
+    const token = await getToken();
+    await db
+      .collection("Tokens")
+      .doc(registeredUserId)
+      .set({ token: token, uid: registeredUserId });
   } catch (error) {
     result.successful = false;
     result.error =
@@ -189,6 +200,7 @@ const generateParticipant = (projectId, role) => {
     name: names && names[1] + "@" + names[2],
     phone: phone && "+" + phone[1] + " " + phone[2],
     photoUrl: user.photoURL,
+    uid: user.uid,
   };
 };
 
@@ -745,4 +757,45 @@ const getNotificationsQuery = (projectId, limit, start) => {
         .collection("Notifications")
         .orderBy("creationDate", "desc")
         .limit(limit);
+};
+
+export const sendNotifications = (projectId, projectName, messageBody) => {
+  const result = { successful: true, error: null };
+  try {
+    const participantsDocs = await db
+      .collection("Projects")
+      .doc(projectId)
+      .collection("Participants")
+      .get();
+    const ids = [];
+    participantsDocs.forEach((participantDoc) => {
+      ids.push(participantDoc.data().uid);
+    });
+    const tokensDocs = await db
+      .collection("Tokens")
+      .where("uid", "in", ids)
+      .get();
+    const messages = [];
+    tokensDocs.forEach((tokenDoc) => {
+      messages.push(
+        generateNotificationMessage(
+          tokenDoc.data().token,
+          projectName,
+          messageBody,
+          null
+        )
+      );
+    });
+    const results = await Promise.all(
+      messages.map((message) => sendPushNotification(message))
+    );
+    if (results.some((result) => result === false)) {
+      result.successful = false;
+      result.error = "it was not possible to send all the notifications";
+    }
+  } catch (error) {
+    result.successful = false;
+    result.error = error;
+  }
+  return result;
 };

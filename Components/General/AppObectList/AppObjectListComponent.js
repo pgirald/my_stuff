@@ -26,6 +26,7 @@ export default function AppObjectListComponent({
   const [loading, setLoading] = useState(false);
   const [startObject, setStartObject] = useState(null);
   const [scrolling, setScrolling] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState(null);
   const objectsLimit = limit;
 
   const reload = () => {
@@ -44,7 +45,9 @@ export default function AppObjectListComponent({
       <FlatList
         data={objects}
         keyExtractor={(item, index) => String(index)}
-        renderItem={(element) => renderItem(element, { setLoading, reload })}
+        renderItem={(element) =>
+          renderItem(element, { setLoading, reload, setLoadingMessage })
+        }
         onEndReachedThreshold={0.1}
         onEndReached={() =>
           onListEndReached(
@@ -88,7 +91,7 @@ export default function AppObjectListComponent({
           }
         />
       )}
-      <Loading isVisible={loading} />
+      <Loading isVisible={loading} text={loadingMessage} />
     </AppContainer>
   );
 }
