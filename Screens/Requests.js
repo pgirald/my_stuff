@@ -9,11 +9,12 @@ export default function Requests() {
     <AppObjectListComponent
       getObjects={(limit) => getRequests(limit)}
       getMoreObjects={(limit, startRequest) => getRequests(limit, startRequest)}
-      renderItem={(element, { setLoading, reload }) => (
+      renderItem={(element, { setLoading, reload, setLoadingMessage }) => (
         <RequestItem
           setLoading={setLoading}
           reload={reload}
           request={element.item}
+          setLoadingMessage={setLoadingMessage}
         />
       )}
     />

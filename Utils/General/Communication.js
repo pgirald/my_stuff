@@ -61,7 +61,7 @@ export const getToken = async () => {
     Notifications.setNotificationChannelAsync("default", {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
+      //vibrationPattern: [0, 250, 250, 250],
       lightColor: "#FF231F7C",
     });
   }
@@ -86,6 +86,7 @@ export const startNotifications = (notificationListener, responseListener) => {
 };
 
 export const sendPushNotification = async (message) => {
+  console.log(message);
   let response = false;
   await fetch("https://exp.host/--/api/v2/push/send", {
     method: "POST",
@@ -105,7 +106,7 @@ export const generateNotificationMessage = (token, title, body, data) => {
     sound: "default",
     title: title,
     body: body,
-    data: data,
+    data: data || { data: body },
   };
   return message;
 };

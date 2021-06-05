@@ -759,13 +759,17 @@ const getNotificationsQuery = (projectId, limit, start) => {
         .limit(limit);
 };
 
-export const sendNotifications = (projectId, projectName, messageBody) => {
+export const sendNotifications = async (
+  projectId,
+  projectName,
+  messageBody
+) => {
   const result = { successful: true, error: null };
   try {
     const participantsDocs = await db
       .collection("Projects")
       .doc(projectId)
-      .collection("Participants")
+      .collection("ProjectParticipants")
       .get();
     const ids = [];
     participantsDocs.forEach((participantDoc) => {

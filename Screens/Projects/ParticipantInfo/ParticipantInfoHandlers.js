@@ -56,9 +56,6 @@ async function onUpdateConfirm(args, participant, newRole, project) {
   );
   args.setLoading(false);
   args.setLoadingMessage(null);
-  if (!sendNotificationsResult.successful) {
-    Alert.alert("The notifications could not be sent");
-  }
   if (result.successful) {
     Alert.alert("Nice!", "The participant role was successfully updated");
   } else {
@@ -67,6 +64,9 @@ async function onUpdateConfirm(args, participant, newRole, project) {
       "There was an error while updating the participant role"
     );
     args.setKey(!args.key);
+  }
+  if (!sendNotificationsResult.successful) {
+    Alert.alert("Too bad", "The project participants were not notified");
   }
 }
 
@@ -113,11 +113,8 @@ async function onDeleteConfirm(args, participant, navigation, project) {
   );
   args.setLoading(false);
   args.setLoadingMessage(null);
-  if (!sendNotificationsResult.successful) {
-    Alert.alert("The notifications could not be sent");
-  }
   if (result.successful) {
-    Alert.alert("Nice!", "The participant role was successfully deleted");
+    Alert.alert("Nice!", "The participant was successfully removed");
     if (participant.email !== getCurrentUser().email) {
       navigation.goBack();
     } else {
@@ -125,5 +122,8 @@ async function onDeleteConfirm(args, participant, navigation, project) {
     }
   } else {
     Alert.alert("Error", "There was an error while removing the participant");
+  }
+  if (!sendNotificationsResult.successful) {
+    Alert.alert("Too bad", "The project participants were not notified");
   }
 }

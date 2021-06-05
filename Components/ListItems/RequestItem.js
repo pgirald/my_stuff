@@ -18,7 +18,7 @@ export default function RequestItem({
   return (
     <InfoItem
       containerStyle={{ flexDirection: "row" }}
-      leftContainerStyle={{ flex: 3 }}
+      leftContainerStyle={{ width: "75%" }}
       title={request.senderEmail}
       content={"Join to " + request.projectName + " as " + request.proposedRole}
       right={
@@ -27,7 +27,7 @@ export default function RequestItem({
             flexDirection: "row",
             justifyContent: "flex-end",
             alignItems: "center",
-            flex: 1,
+            width: "25%",
           }}
         >
           <AppIcon
@@ -48,12 +48,17 @@ export default function RequestItem({
   );
 }
 
-async function onCheckIconPress(setLoading, request, reload) {
+async function onCheckIconPress(
+  setLoading,
+  request,
+  reload,
+  setLoadingMessage
+) {
   setLoadingMessage("Accepting request");
   setLoading(true);
-  let result = await acceptRequest(request);
+  const result = await acceptRequest(request);
   setLoadingMessage("Notifying to the project participants");
-  result = await sendNotifications(
+  const sendNotificationsResult = await sendNotifications(
     request.projectId,
     request.projectName,
     request.receiverEmail + " has joined"
@@ -65,6 +70,9 @@ async function onCheckIconPress(setLoading, request, reload) {
     Alert.alert("Great!", "You have joined to " + request.projectName);
   } else {
     Alert.alert("Error", "The request could not be accepted");
+  }
+  if (!sendNotificationsResult.successful) {
+    Alert.alert("Too bad", "The project participants were not notified");
   }
 }
 

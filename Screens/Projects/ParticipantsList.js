@@ -83,8 +83,8 @@ function createRequest(data) {
   return {
     projectId: data.project.id,
     projectName: data.project.name,
-    senderEmail: getCurrentUser().email,
-    receiverEmail: data.email,
+    senderEmail: getCurrentUser().email.toLowerCase(),
+    receiverEmail: data.email.toLowerCase(),
     creationDate: new Date(),
     proposedRole: data.role,
   };
