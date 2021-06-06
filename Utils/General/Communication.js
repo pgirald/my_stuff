@@ -69,22 +69,6 @@ export const getToken = async () => {
   return token;
 };
 
-export const startNotifications = (notificationListener, responseListener) => {
-  notificationListener.current = Notifications.addNotificationReceivedListener(
-    (notification) => {
-      console.log(notification);
-    }
-  );
-  responseListener.current =
-    Notifications.addNotificationResponseReceivedListener((notification) => {
-      console.log(notification);
-    });
-  return () => {
-    Notifications.removeNotificationSubscription(notificationListener);
-    Notifications.removeNotificationSubscription(responseListener);
-  };
-};
-
 export const sendPushNotification = async (message) => {
   console.log(message);
   let response = false;

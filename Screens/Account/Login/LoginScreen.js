@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StatusBar } from "react-native";
@@ -12,9 +12,16 @@ import { PasswordInput } from "../../../Components/Inputs/PasswordInput";
 import { IconsContainer } from "../../../Components/Icons/IconsContainer";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { EmailInput } from "../../../Components/Inputs/EmailInput";
-import { isEmpty } from "lodash";
-import { onLoginButtonPress, onTextFieldChange } from "./LoginHandlers";
+import {
+  onForgotPasswordLabelPress,
+  onLoginButtonPress,
+  onRecorverBtnPress,
+  onTextFieldChange,
+} from "./LoginHandlers";
 import Loading from "../../../Components/General/Loading";
+import { googleSignInAsync } from "../../../Utils/General/GoogleAccount";
+import Modal from "../../../Components/General/Modal";
+import { modalButtonStyle } from "../../../Components/Buttons/ModalButtonStyle";
 
 export default function LoginScreen({ onUserLogged = () => {} }) {
   const navigation = useNavigation();
@@ -22,6 +29,19 @@ export default function LoginScreen({ onUserLogged = () => {} }) {
   const [formInputs, setFormInputs] = useState(defaultInputs);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(defaultErrors);
+  const [recoverEmail, setRecoverEmail] = useState(null);
+  const [validateRecoverEmail, setValidateRecoverEmail] = useState(false);
+  const modalRef = useRef();
+
+  const iconsProperties = [
+    {
+      source: require("../../../assets/google.png"),
+      onPress: () => googleSignInAsync(setLoading),
+    },
+    {
+      source: require("../../../assets/facebook.png"),
+    },
+  ];
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -72,7 +92,12 @@ export default function LoginScreen({ onUserLogged = () => {} }) {
             )
           }
         />
-        <Text style={styles.text}>Forgot password?</Text>
+        <Text
+          style={styles.text}
+          onPress={() => onForgotPasswordLabelPress(modalRef)}
+        >
+          Forgot password?
+        </Text>
         <IconsContainer
           style={styles.iconsContainer}
           iconsProps={iconsProperties}
@@ -89,6 +114,26 @@ export default function LoginScreen({ onUserLogged = () => {} }) {
         />
         <StatusBar style="auto" />
       </KeyboardAwareScrollView>
+      <Modal modalRef={modalRef}>
+        <EmailInput
+          onChange={(e) => setRecoverEmail(e.validatedText)}
+          validate={validateRecoverEmail}
+        />
+        <AppButton
+          style={modalButtonStyle()}
+          title="Send"
+          onPress={() =>
+            onRecorverBtnPress(
+              {
+                setLoading,
+                recoverEmail,
+                setValidateRecoverEmail,
+              },
+              modalRef
+            )
+          }
+        />
+      </Modal>
       <Loading isVisible={loading} />
     </AppContainer>
   );
@@ -103,15 +148,6 @@ const defaultErrors = {
   email: undefined,
   password: undefined,
 };
-
-const iconsProperties = [
-  {
-    source: require("../../../assets/google.png"),
-  },
-  {
-    source: require("../../../assets/facebook.png"),
-  },
-];
 
 const styles = StyleSheet.create({
   keyboardAwareContainerContent: {

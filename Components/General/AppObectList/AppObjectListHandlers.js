@@ -29,6 +29,7 @@ export async function onFocus(args, navigation, objectsLimit, getObjects) {
   } else {
     Alert.alert("Error", "Error while getting the data");
     navigation.goBack();
+    console.log(result.error);
   }
 }
 

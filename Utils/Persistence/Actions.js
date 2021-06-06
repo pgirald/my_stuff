@@ -803,3 +803,14 @@ export const sendNotifications = async (
   }
   return result;
 };
+
+export const recoverPassword = async(email) => {
+    const result = { successful: true, error: null }
+    try {
+        await firebase.auth().sendPasswordResetEmail(email)
+    } catch (error) {
+        result.successful = false
+        result.error = error
+    }
+    return result
+}

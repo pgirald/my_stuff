@@ -18,7 +18,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.theodoros.stuff"
+      "bundleIdentifier": "com.mystuff.theodoro"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +27,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyBZOWmwa7JD509iQv51Cd6C1XjWlcWnaIQ"
+          "apiKey": "AIzaSyC2Iv8Vc-fU8O9dLPqMjGcUgfZzP4S6TYM"
         }
       },
       "permissions": [
@@ -41,7 +41,8 @@
         "USER_FACING_NOTIFICATIONS"
       ],
       "useNextNotificationsApi": true,
-      "package": "com.theodoros.stuff"
+      "package": "com.mystuff.theodoro",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
