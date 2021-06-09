@@ -70,7 +70,6 @@ export const getToken = async () => {
 };
 
 export const sendPushNotification = async (message) => {
-  console.log(message);
   let response = false;
   await fetch("https://exp.host/--/api/v2/push/send", {
     method: "POST",

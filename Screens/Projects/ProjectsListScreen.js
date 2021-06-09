@@ -10,6 +10,7 @@ import {
 } from "../../Utils/Persistence/Actions";
 import ProjectItem from "../../Components/ListItems/ProjectItem";
 import { useNavigation } from "@react-navigation/native";
+import NameFilterModal from "../../Components/General/NameFilterModal";
 
 export default function ProjectsListScreen() {
   const navigation = useNavigation();
@@ -17,9 +18,8 @@ export default function ProjectsListScreen() {
     <AppObjectListComponent
       ModalForm={AddProjectForm}
       addObject={addProject}
-      getObjects={(limit) => getProjects(getCurrentUser().uid, limit)}
-      getMoreObjects={(limit, startProject) =>
-        getProjects(getCurrentUser().uid, limit, startProject)
+      getObjects={(limit, startProject, filterObj) =>
+        getProjects(getCurrentUser().uid, limit, startProject, filterObj)
       }
       createObject={createProject}
       renderItem={(data) => (
@@ -34,6 +34,7 @@ export default function ProjectsListScreen() {
           }
         />
       )}
+      FilterModal={NameFilterModal}
     />
   );
 }

@@ -21,7 +21,7 @@ export async function onAddProjectBtnPress(
 
 export async function onFocus(args, navigation, objectsLimit, getObjects) {
   args.setLoading(true);
-  const result = await getObjects(objectsLimit);
+  const result = await getObjects(objectsLimit, null, args.filterObj);
   args.setLoading(false);
   if (result.successful) {
     args.setObjects(result.objects);
@@ -33,7 +33,7 @@ export async function onFocus(args, navigation, objectsLimit, getObjects) {
   }
 }
 
-export async function onListEndReached(args, objectsLimit, getMoreObjects) {
+export async function onListEndReached(args, objectsLimit, getObjects) {
   if (!args.scrolling) {
     return;
   }
@@ -41,10 +41,24 @@ export async function onListEndReached(args, objectsLimit, getMoreObjects) {
     return;
   }
   args.setLoading(true);
-  const result = await getMoreObjects(objectsLimit, args.startObject);
+  const result = await getObjects(
+    objectsLimit,
+    args.startObject,
+    args.filterObj
+  );
   args.setLoading(false);
   if (result.successful) {
     args.setStartObject(result.start);
     args.setObjects([...args.objects, ...result.objects]);
   }
+}
+
+export function onFilterEnabled(args, filterObj, reload) {
+  args.setFilterObj(filterObj);
+  return reload(filterObj);
+}
+
+export function onFilterDisabled(args, reload) {
+  args.setFilterObj(null);
+  return reload();
 }

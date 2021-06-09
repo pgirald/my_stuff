@@ -8,37 +8,58 @@ import {
   onAddProjectBtnPress,
   onFocus,
   onListEndReached,
+  onFilterEnabled,
+  onFilterDisabled,
 } from "./AppObjectListHandlers";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import FilterButton from "../FilterButton";
+import { appColors } from "../../Styles/Colors";
 
 export default function AppObjectListComponent({
   ModalForm,
   createObject,
   addObject,
   getObjects,
-  getMoreObjects,
   renderItem,
-  limit = 12,
+  FilterModal,
+  limit = 11,
 }) {
   const navigation = useNavigation();
   const modalRef = useRef();
+  const filterModalRef = useRef();
   const [objects, setObjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [startObject, setStartObject] = useState(null);
   const [scrolling, setScrolling] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(null);
+  const [filterObj, setFilterObj] = useState(null);
   const objectsLimit = limit;
 
-  const reload = () => {
+  const reload = (filterObj = null) => {
     onFocus(
-      { setObjects, setLoading, setStartObject, startObject },
+      { setObjects, setLoading, setStartObject, startObject, filterObj },
       navigation,
       objectsLimit,
       getObjects
     );
   };
 
-  useFocusEffect(useCallback(reload, []));
+  useFocusEffect(
+    useCallback(() => {
+      FilterModal &&
+        navigation.setOptions({
+          headerRight: () => (
+            <AppIcon
+              name="magnify"
+              size={40}
+              onPress={() => filterModalRef.current.show(true)}
+              color={appColors.white}
+            />
+          ),
+        });
+      reload();
+    }, [])
+  );
 
   return (
     <AppContainer>
@@ -58,9 +79,10 @@ export default function AppObjectListComponent({
               setStartObject,
               setLoading,
               scrolling,
+              filterObj,
             },
             objectsLimit,
-            getMoreObjects
+            getObjects
           )
         }
         onScrollBeginDrag={() => setScrolling(true)}
@@ -89,6 +111,17 @@ export default function AppObjectListComponent({
               addObject
             )
           }
+        />
+      )}
+      {FilterModal && (
+        <FilterModal
+          onFilterEnabled={(filterObj) => {
+            onFilterEnabled({ setFilterObj }, filterObj, reload);
+          }}
+          onFilterDisabled={() => {
+            onFilterDisabled({ setFilterObj }, reload);
+          }}
+          modalRef={filterModalRef}
         />
       )}
       <Loading isVisible={loading} text={loadingMessage} />

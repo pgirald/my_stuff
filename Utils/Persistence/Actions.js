@@ -1,6 +1,7 @@
 import { firebaseApp } from "./Firebase";
 import * as firebase from "firebase";
 import "firebase/firestore";
+import { FireSQL } from "firesql";
 import { fileToBlob } from "../General/FilesManagement";
 import {
   getToken,
@@ -140,7 +141,7 @@ export const addDocumentWithoutId = async (collectionRef, data) => {
   return result;
 };
 
-export const getPagedData = async (query) => {
+/*export const getPagedData = async (query) => {
   const result = {
     successful: true,
     error: null,
@@ -162,11 +163,12 @@ export const getPagedData = async (query) => {
     result.error = error;
   }
   return result;
-};
+};*/
 
 export const addProject = async (project) => {
   const result = { successful: true, error: null };
   const batch = db.batch();
+  project.participants = [getCurrentUser().uid];
   try {
     const newProjectDocRef = db.collection("Projects").doc();
     batch.set(newProjectDocRef, project);
@@ -204,45 +206,55 @@ const generateParticipant = (projectId, role) => {
   };
 };
 
-export const getProjects = async (currentUserId, limit, start) => {
+export const getProjects = async (currentUserId, limit, start, filterObj) => {
   const result = { successful: true, objects: [], error: null, start: null };
-  const objectsData = [];
-  const promises = [];
-  try {
-    const query = start
-      ? db
-          .collectionGroup("ProjectParticipants")
-          .where("email", "==", getCurrentUser().email)
-          .orderBy("creationDate")
-          .startAfter(start)
-          .limit(limit)
-      : db
-          .collectionGroup("ProjectParticipants")
-          .where("email", "==", getCurrentUser().email)
-          .orderBy("creationDate")
-          .limit(limit);
-    const participantsDocs = await query.get();
-    participantsDocs.forEach((doc) =>
-      objectsData.push({
-        role: doc.data().role,
-        projectDocRef: db.collection("Projects").doc(doc.data().projectId),
-      })
-    );
-    await db.runTransaction(async (transaction) => {
-      objectsData.forEach((data) =>
-        promises.push(
-          (async () => {
-            const projectDocRef = await transaction.get(data.projectDocRef);
-            result.objects.push({
-              role: data.role,
-              project: { ...projectDocRef.data(), id: projectDocRef.id },
-            });
-          })()
-        )
-      );
-      await Promise.all(promises);
+  filterObj ||
+    (filterObj = {
+      orderFields: [{ name: "creationDate", direction: "DESC" }],
     });
-    result.start = result.objects[result.objects.length - 1];
+  filterObj.participants = ["CONTAINS", `'${currentUserId}'`];
+  try {
+    const projects = await getPagedData(
+      db,
+      "Projects",
+      filterObj,
+      start && {
+        start,
+        field: "creationDate",
+      },
+      false,
+      limit
+    );
+    if (projects.length == 0) {
+      return result;
+    }
+    let projectsIds = `('${projects[0].id}'`;
+    for (let i = 1; i < projects.length; i++) {
+      projectsIds += `, '${projects[i].id}'`;
+    }
+    projectsIds += ")";
+    filterObj = {
+      orderFields: [{ name: "creationDate", direction: "DESC" }],
+      uid: ["=", `'${currentUserId}'`],
+      projectId: ["IN", projectsIds],
+    };
+    const participants = await getPagedData(
+      db,
+      "ProjectParticipants",
+      filterObj,
+      null,
+      true
+    );
+    result.objects = projects.map((project) => {
+      return {
+        role: participants.find(
+          (participant) => participant.projectId == project.id
+        ).role,
+        project,
+      };
+    });
+    result.start = result.objects[result.objects.length - 1].project;
+    return result;
   } catch (error) {
     result.error = error;
     result.successful = false;
@@ -287,8 +299,16 @@ export const addFile = (file, ownerCollection) => {
   );
 };
 
-export const getFiles = (ownerId, ownerCollection, limit, start) => {
-  return getPagedData(getFilesQuery(ownerId, ownerCollection, limit, start));
+export const getFiles = (ownerId, ownerCollection, limit, start, filterObj) => {
+  const collRef = db.collection(ownerCollection).doc(ownerId);
+  return fireSQLFirestore.query(
+    getPagedData(
+      "Files",
+      "uploadDate",
+      filterObj,
+      start && { start, field: "uploadDate" }
+    )
+  );
 };
 
 const getFilesQuery = (ownerId, ownerCollection, limit, start) => {
@@ -569,6 +589,9 @@ const getParticipantsQuery = (projectId, limit, start) => {
 
 export const acceptRequest = async (acceptedRequest) => {
   const result = { successful: true, error: null };
+  const projectDocRef = db
+    .collection("Projects")
+    .doc(acceptedRequest.projectId);
   const newParticipantDocRef = db
     .collection("Projects")
     .doc(acceptedRequest.projectId)
@@ -583,6 +606,11 @@ export const acceptRequest = async (acceptedRequest) => {
     .collection("Notifications")
     .doc();
   const batch = db.batch();
+  batch.update(projectDocRef, {
+    participants: firebase.firestore.FieldValue.arrayUnion(
+      getCurrentUser().uid
+    ),
+  });
   batch.set(
     newParticipantDocRef,
     generateParticipant(acceptedRequest.projectId, acceptedRequest.proposedRole)
@@ -604,6 +632,7 @@ export const acceptRequest = async (acceptedRequest) => {
 
 export const ejectParticipant = async (projectId, participant) => {
   const result = { successful: true, error: null };
+  const projectDocRef = db.collection("Projects").doc(projectId);
   const participantDocRef = db
     .collection("Projects")
     .doc(projectId)
@@ -615,6 +644,9 @@ export const ejectParticipant = async (projectId, participant) => {
     .collection("Notifications")
     .doc();
   const batch = db.batch();
+  batch.update(projectDocRef, {
+    participants: firebase.firestore.FieldValue.arrayRemove(participant.uid),
+  });
   batch.delete(participantDocRef);
   batch.set(newNotificationDocRef, {
     projectId: projectId,
@@ -804,13 +836,53 @@ export const sendNotifications = async (
   return result;
 };
 
-export const recoverPassword = async(email) => {
-    const result = { successful: true, error: null }
-    try {
-        await firebase.auth().sendPasswordResetEmail(email)
-    } catch (error) {
-        result.successful = false
-        result.error = error
+export const recoverPassword = async (email) => {
+  const result = { successful: true, error: null };
+  try {
+    await firebase.auth().sendPasswordResetEmail(email);
+  } catch (error) {
+    result.successful = false;
+    result.error = error;
+  }
+  return result;
+};
+
+const getPagedData = (
+  ref,
+  collectionName,
+  filterObj,
+  offset,
+  isGroup = false,
+  limit = 12
+) => {
+  if (!filterObj.orderFields) {
+    throw new Error("You have to specify the order field in the filter object");
+  }
+  let orderFields = `${filterObj.orderFields[0].name} ${filterObj.orderFields[0].direction}`;
+  for (let i = 1; i < filterObj.orderFields.length; i++) {
+    orderFields += `, ${filterObj.orderFields[i].name} ${filterObj.orderFields[i].direction}`;
+  }
+  const fireSql = new FireSQL(ref, { includeId: "id" });
+  let sql = `SELECT * FROM${isGroup ? " GROUP" : ""} ${collectionName}`;
+  if (offset) {
+    if (filterObj) {
+      filterObj[offset.field] = [">", offset.start[offset.field]];
+    } else {
+      filterObj = { [offset.field]: [">", offset.start[offset.field]] };
     }
-    return result
-}
+  }
+  let firstTime = true;
+  for (const key in filterObj) {
+    if (key === "orderFields") {
+      continue;
+    }
+    if (firstTime) {
+      sql += ` WHERE ${key} ${filterObj[key][0]} ${filterObj[key][1]}`;
+      firstTime = false;
+    } else {
+      sql += ` AND ${key} ${filterObj[key][0]} ${filterObj[key][1]}`;
+    }
+  }
+  sql += ` ORDER BY ${orderFields} LIMIT ${limit}`;
+  return fireSql.query(sql);
+};
