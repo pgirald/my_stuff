@@ -8,6 +8,7 @@ import {
   generateNotificationMessage,
   sendPushNotification,
 } from "../General/Communication";
+import { filter, result } from "lodash";
 
 //Storage link:
 // service firebase.storage {
@@ -214,7 +215,7 @@ export const getProjects = async (currentUserId, limit, start, filterObj) => {
     });
   filterObj.participants = ["CONTAINS", `'${currentUserId}'`];
   try {
-    const projects = await getPagedData(
+    const projects = await getData(
       db,
       "Projects",
       filterObj,
@@ -222,8 +223,8 @@ export const getProjects = async (currentUserId, limit, start, filterObj) => {
         start,
         field: "creationDate",
       },
-      false,
-      limit
+      limit,
+      false
     );
     if (projects.length == 0) {
       return result;
@@ -238,10 +239,11 @@ export const getProjects = async (currentUserId, limit, start, filterObj) => {
       uid: ["=", `'${currentUserId}'`],
       projectId: ["IN", projectsIds],
     };
-    const participants = await getPagedData(
+    const participants = await getData(
       db,
       "ProjectParticipants",
       filterObj,
+      null,
       null,
       true
     );
@@ -301,31 +303,7 @@ export const addFile = (file, ownerCollection) => {
 
 export const getFiles = (ownerId, ownerCollection, limit, start, filterObj) => {
   const collRef = db.collection(ownerCollection).doc(ownerId);
-  return fireSQLFirestore.query(
-    getPagedData(
-      "Files",
-      "uploadDate",
-      filterObj,
-      start && { start, field: "uploadDate" }
-    )
-  );
-};
-
-const getFilesQuery = (ownerId, ownerCollection, limit, start) => {
-  return start
-    ? db
-        .collection(ownerCollection)
-        .doc(ownerId)
-        .collection("Files")
-        .orderBy("uploadDate", "desc")
-        .startAfter(start.uploadDate)
-        .limit(limit)
-    : db
-        .collection(ownerCollection)
-        .doc(ownerId)
-        .collection("Files")
-        .orderBy("uploadDate", "desc")
-        .limit(limit);
+  return getPagedData(collRef, "Files", filterObj, start, limit, "uploadDate");
 };
 
 export const deleteFile = async (file, ownerCollection) => {
@@ -371,9 +349,7 @@ export const addActivity = async (activity) => {
 };
 
 export const getActivities = (projectId, limit, start, activityName) => {
-  return getPagedData(
-    getActivitiesQuery(projectId, limit, start, activityName)
-  );
+  return getData(getActivitiesQuery(projectId, limit, start, activityName));
 };
 
 const getActivitiesQuery = (projectId, limit, start, activityName) => {
@@ -489,7 +465,7 @@ export const getTasks = (
   start,
   taskName
 ) => {
-  return getPagedData(
+  return getData(
     getTasksQuery(activitiesRoute, activityId, limit, start, taskName)
   );
 };
@@ -567,7 +543,7 @@ export const updateTask = async (task, data, previusData) => {
 };
 
 export const getParticipants = async (projectId, limit, start) => {
-  return await getPagedData(getParticipantsQuery(projectId, limit, start));
+  return await getData(getParticipantsQuery(projectId, limit, start));
 };
 
 const getParticipantsQuery = (projectId, limit, start) => {
@@ -698,7 +674,7 @@ export const updateParticipantRole = async (
 };
 
 export const getRequests = async (limit, start) => {
-  return await getPagedData(getRequestsQuery(limit, start));
+  return await getData(getRequestsQuery(limit, start));
 };
 
 const getRequestsQuery = (limit, start) => {
@@ -771,7 +747,7 @@ export const denyRequest = async (requestId) => {
 };
 
 export const getNotifications = async (projectId, limit, start) => {
-  return await getPagedData(getNotificationsQuery(projectId, limit, start));
+  return await getData(getNotificationsQuery(projectId, limit, start));
 };
 
 const getNotificationsQuery = (projectId, limit, start) => {
@@ -847,21 +823,14 @@ export const recoverPassword = async (email) => {
   return result;
 };
 
-const getPagedData = (
+const getData = (
   ref,
   collectionName,
   filterObj,
   offset,
-  isGroup = false,
-  limit = 12
+  limit,
+  isGroup = false
 ) => {
-  if (!filterObj.orderFields) {
-    throw new Error("You have to specify the order field in the filter object");
-  }
-  let orderFields = `${filterObj.orderFields[0].name} ${filterObj.orderFields[0].direction}`;
-  for (let i = 1; i < filterObj.orderFields.length; i++) {
-    orderFields += `, ${filterObj.orderFields[i].name} ${filterObj.orderFields[i].direction}`;
-  }
   const fireSql = new FireSQL(ref, { includeId: "id" });
   let sql = `SELECT * FROM${isGroup ? " GROUP" : ""} ${collectionName}`;
   if (offset) {
@@ -872,6 +841,7 @@ const getPagedData = (
     }
   }
   let firstTime = true;
+  i = 0;
   for (const key in filterObj) {
     if (key === "orderFields") {
       continue;
@@ -879,10 +849,52 @@ const getPagedData = (
     if (firstTime) {
       sql += ` WHERE ${key} ${filterObj[key][0]} ${filterObj[key][1]}`;
       firstTime = false;
-    } else {
-      sql += ` AND ${key} ${filterObj[key][0]} ${filterObj[key][1]}`;
+      i = 2;
     }
+    for (i; i < filterObj[key].length; i += 2) {
+      sql += ` AND ${key} ${filterObj[key][i]} ${filterObj[key][i + 1]}`;
+    }
+    i = 0;
   }
-  sql += ` ORDER BY ${orderFields} LIMIT ${limit}`;
+  if (filterObj.orderFields) {
+    let orderFields = `${filterObj.orderFields[0].name} ${filterObj.orderFields[0].direction}`;
+    for (var i = 1; i < filterObj.orderFields.length; i++) {
+      orderFields += `, ${filterObj.orderFields[i].name} ${filterObj.orderFields[i].direction}`;
+    }
+    sql += ` ORDER BY ${orderFields}`;
+    limit && (sql += ` LIMIT ${limit}`);
+  }
   return fireSql.query(sql);
+};
+
+const getPagedData = async (
+  ref,
+  collectionName,
+  filterObj,
+  start,
+  limit,
+  defaultOrderField,
+  isGroup = false
+) => {
+  const result = { successful: true };
+  filterObj ||
+    (filterObj = {
+      orderFields: [{ name: defaultOrderField, direction: "DESC" }],
+    });
+  try {
+    result.objects = await getData(
+      ref,
+      collectionName,
+      filterObj,
+      start && { start: start, field: defaultOrderField },
+      limit,
+      isGroup
+    );
+    result.start = result.objects[result.objects.length - 1];
+  } catch (error) {
+    console.log("holalallala")
+    result.successful = false;
+    result.error = error;
+  }
+  return result;
 };

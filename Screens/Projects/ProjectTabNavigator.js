@@ -6,9 +6,9 @@ import ProjectInfoScreen from "./ProjectInfo/ProjectInfoScreen";
 import { appColors } from "../../Components/Styles/Colors";
 import { AppIcon } from "../../Components/Icons/AppIcon";
 import ActivitiesListScreen from "../Activities/ActivitiesListScreen";
-import AttachmentsScreen from "../../Components/General/Attachments/AttachmentsScreen";
 import ParticipantsList from "./ParticipantsList";
 import Notifications from "./Notifications";
+import AttachmentsScreen from "../../Components/General/AttachmentsScreen";
 
 const Tab = createBottomTabNavigator();
 

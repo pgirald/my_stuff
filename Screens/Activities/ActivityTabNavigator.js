@@ -4,12 +4,10 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { appColors } from "../../Components/Styles/Colors";
 import { AppIcon } from "../../Components/Icons/AppIcon";
-import AttachmentsScreen from "../../Components/General/Attachments/AttachmentsScreen";
 import ActivityInfoScreen from "./ActivityInfo/ActivityInfoScreen";
-import ActivityParticipantsScreen from "./Participants/ActivityParticipantsScreen";
 import TasksListScreen from "../Tasks/TasksListScreen";
-import MapScreen from "../../Components/General/Map/MapScreen";
 import ActivityLocationScreen from "./ActivityLocation/ActivityLocationScreen";
+import AttachmentsScreen from "../../Components/General/AttachmentsScreen";
 
 const Tab = createBottomTabNavigator();
 

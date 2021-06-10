@@ -27,9 +27,9 @@ export async function onFocus(args, navigation, objectsLimit, getObjects) {
     args.setObjects(result.objects);
     args.setStartObject(result.start);
   } else {
+    console.log(result);
     Alert.alert("Error", "Error while getting the data");
     navigation.goBack();
-    console.log(result.error);
   }
 }
 

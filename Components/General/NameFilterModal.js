@@ -1,10 +1,8 @@
 import { isEmpty } from "lodash";
 import React, { useState } from "react";
 import { Alert } from "react-native";
-import { StyleSheet, Text, View } from "react-native";
 import { Input } from "react-native-elements";
 import FilterModal from "./FilterModal";
-import DatesInput from "../Inputs/DatesInput";
 
 export default function NameFilterModal({
   modalRef,
@@ -40,8 +38,8 @@ function onFilterBtnPress(args, onFilterEnabled) {
     return false;
   }
   onFilterEnabled({
-    name: ["LIKE", `'${args.name}%'`],
-    orderFields: [{ name: "name", direction: "DESC" }],
+    name: ["=", `'${args.name}'`],
+    orderFields: [{ name: "creationDate", direction: "DESC" }],
   });
   return true;
 }
