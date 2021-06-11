@@ -8,6 +8,7 @@ export default function NameFilterModal({
   modalRef,
   onFilterEnabled,
   onFilterDisabled,
+  fieldName = "name",
 }) {
   const [name, setName] = useState(null);
   return (
@@ -17,7 +18,9 @@ export default function NameFilterModal({
         onFilterDisabledBtnPress({ setName });
         onFilterDisabled();
       }}
-      onFilterBtnPress={() => onFilterBtnPress({ name }, onFilterEnabled)}
+      onFilterBtnPress={() =>
+        onFilterBtnPress({ name }, onFilterEnabled, fieldName)
+      }
     >
       <Input
         placeholder="Name"
@@ -32,14 +35,11 @@ function onFilterDisabledBtnPress(args) {
   args.setName(null);
 }
 
-function onFilterBtnPress(args, onFilterEnabled) {
+function onFilterBtnPress(args, onFilterEnabled, fieldName) {
   if (!args.name) {
     Alert.alert("Error", "You must specify a name");
     return false;
   }
-  onFilterEnabled({
-    name: ["=", `'${args.name}'`],
-    orderFields: [{ name: "creationDate", direction: "DESC" }],
-  });
+  onFilterEnabled({ [fieldName]: ["=", `'${args.name}'`] });
   return true;
 }

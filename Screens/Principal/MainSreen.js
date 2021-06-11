@@ -35,7 +35,7 @@ export default function MainSreen() {
       <Stack.Screen
         name="Projects"
         component={ProjectsListScreen}
-        options={appStackOptions("Projects")}
+        options={appStackOptions(undefined)}
       />
       <Stack.Screen
         name="ProjectTabNavigator"
@@ -60,7 +60,7 @@ export default function MainSreen() {
       <Stack.Screen
         name="Requests"
         component={Requests}
-        options={appStackOptions("Requests")}
+        options={appStackOptions(undefined)}
       />
     </Stack.Navigator>
   );

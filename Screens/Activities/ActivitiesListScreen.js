@@ -6,23 +6,17 @@ import { isEmpty } from "lodash";
 import ActivityItem from "../../Components/ListItems/ActivityItem";
 import { useFocusEffect } from "@react-navigation/native";
 import { addActivity, getActivities } from "../../Utils/Persistence/Actions";
+import NameFilterModal from "../../Components/General/NameFilterModal";
 
 export default function ActivitiesListScreen({ project, navigation, role }) {
-  useFocusEffect(
-    useCallback(() => {
-      navigation.setOptions({
-        headerRight: null,
-        title: "Activities",
-      });
-    }, [])
-  );
   return (
     <AppObjectListComponent
+      options={{ title: "Activities" }}
+      navigation={navigation}
       ModalForm={(args) => AddActivityForm({ ...args, projectId: project.id })}
       addObject={addActivity}
-      getObjects={(limit) => getActivities(project.id, limit)}
-      getMoreObjects={(limit, startActivity) =>
-        getActivities(project.id, limit, startActivity)
+      getObjects={(limit, startActivity, filterObj) =>
+        getActivities(project.id, limit, startActivity, filterObj)
       }
       createObject={createActivity}
       renderItem={(activity) => (
@@ -36,6 +30,7 @@ export default function ActivitiesListScreen({ project, navigation, role }) {
           }
         />
       )}
+      FilterModal={NameFilterModal}
     />
   );
 }

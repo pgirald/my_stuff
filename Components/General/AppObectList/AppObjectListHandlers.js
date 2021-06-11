@@ -1,6 +1,6 @@
 import { Alert } from "react-native";
 
-export async function onAddProjectBtnPress(
+export async function onAddObjectBtnPress(
   args,
   modalRef,
   reload,
@@ -27,8 +27,8 @@ export async function onFocus(args, navigation, objectsLimit, getObjects) {
     args.setObjects(result.objects);
     args.setStartObject(result.start);
   } else {
-    console.log(result);
     Alert.alert("Error", "Error while getting the data");
+    console.log(result.error);
     navigation.goBack();
   }
 }

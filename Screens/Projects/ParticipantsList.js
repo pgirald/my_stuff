@@ -13,21 +13,17 @@ import { useFocusEffect } from "@react-navigation/native";
 import { RoleSelect } from "../../Components/Inputs/RoleSelect";
 import { EmailInput } from "../../Components/Inputs/EmailInput";
 import { Alert } from "react-native";
+import ParticipantsFilterModal from "./ParticipantsFilterModal";
 
 export default function ParticipantsList({ navigation, project, role }) {
-  useFocusEffect(
-    useCallback(() => {
-      navigation.setOptions({ title: "Participants", headerRight: null });
-    }, [])
-  );
-
   return (
     <AppObjectListComponent
+      options={{ title: "Participants" }}
+      navigation={navigation}
       ModalForm={(args) => AddRequestForm({ ...args, project: project })}
       addObject={(requestData) => addRequest(requestData)}
-      getObjects={(limit) => getParticipants(project.id, limit)}
-      getMoreObjects={(limit, startParticipant) =>
-        getParticipants(project.id, limit, startParticipant)
+      getObjects={(limit, startParticipant, filterObj) =>
+        getParticipants(project.id, limit, startParticipant, filterObj)
       }
       createObject={createRequest}
       renderItem={(participant) => (
@@ -42,6 +38,7 @@ export default function ParticipantsList({ navigation, project, role }) {
           }
         />
       )}
+      FilterModal={ParticipantsFilterModal}
     />
   );
 }

@@ -31,6 +31,7 @@ export default function FileItem({ file, onPress = () => {} }) {
 
 const getIconName = (fileType) => {
   let iconName;
+  fileType = fileType.toLowerCase();
   switch (fileType) {
     case "png":
     case "jpg":

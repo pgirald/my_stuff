@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Alert, StyleSheet } from "react-native";
 import { Input } from "react-native-elements";
-import { AppButton } from "../Buttons/AppButton";
-import { modalButtonStyle } from "../Buttons/ModalButtonStyle";
 import { AppIcon } from "../Icons/AppIcon";
 import FileItem from "../ListItems/FileItem";
 import { appColors } from "../Styles/Colors";
-import { openFileInBrowser } from "../../Utils/General/FilesManagement";
+import {
+  getFileType,
+  loadFileFromExplorer,
+  openFileInBrowser,
+} from "../../Utils/General/FilesManagement";
 import AppObjectListComponent from "./AppObectList/AppObjectListComponent";
 import NameFilterModal from "./NameFilterModal";
 import {
@@ -16,24 +18,23 @@ import {
   uploadFile,
 } from "../../Utils/Persistence/Actions";
 import ModalForm from "./ModalForm";
+import { isEmpty } from "lodash";
 
 export default function AttachmentsScreen({
   navigation,
   ownerId,
   ownerCollection,
 }) {
-  /* useFocusEffect(
-    useCallback(() => {
-      navigation.setOptions({ title: "Files", headerRight: null });
-    }, [])
-  );*/
-
   return (
     <AppObjectListComponent
+      options={{ title: "Files" }}
+      navigation={navigation}
       addObject={insertFile}
       createObject={createFile}
       ModalForm={(args) => AddFileForm({ ...args, ownerCollection, ownerId })}
-      FilterModal={NameFilterModal}
+      FilterModal={(args) =>
+        NameFilterModal({ ...args, fieldName: "displayName" })
+      }
       getObjects={(limit, start, filterObj) =>
         getFiles(ownerId, ownerCollection, limit, start, filterObj)
       }
@@ -88,7 +89,11 @@ function AddFileForm({ modalRef, onConfirm, ownerCollection, ownerId }) {
   const [pathError, setPathError] = useState(undefined);
   const [path, setPath] = useState(null);
   return (
-    <ModalForm modalRef={modalRef}>
+    <ModalForm
+      modalRef={modalRef}
+      btnText="Add file"
+      onConfirm={onConfirmBtnPress}
+    >
       <Input
         placeholder="File path"
         value={fileName}
@@ -103,11 +108,6 @@ function AddFileForm({ modalRef, onConfirm, ownerCollection, ownerId }) {
           />
         }
       />
-      <AppButton
-        style={modalButtonStyle()}
-        title="Add file"
-        onPress={onConfirmBtnPress}
-      />
     </ModalForm>
   );
   function onConfirmBtnPress() {
@@ -116,7 +116,7 @@ function AddFileForm({ modalRef, onConfirm, ownerCollection, ownerId }) {
       return;
     }
     setPathError(null);
-    onConfirm({ ownerCollection, path, fileName, ownerId });
+    onConfirm({ ownerCollection, path, name: fileName, ownerId });
   }
   async function onUploadIconPress() {
     const result = await loadFileFromExplorer();
@@ -138,7 +138,7 @@ const createFile = (fileData) => {
       uploadDate: uploadDate,
       ownerId: fileData.ownerId,
       downloadUrl: null,
-      type: getFileType(fileName),
+      type: getFileType(fileData.name),
     },
   };
 };
@@ -149,12 +149,10 @@ const insertFile = async (fileInfo) => {
   if (result.successful) {
     file.downloadUrl = result.url;
   } else {
-    throw new Error("There was an error while uploading the file");
+    return result;
   }
   result = await addFile(file, fileInfo.ownerCollection);
-  if (!result.successful) {
-    throw new Error("There was an error while adding the file");
-  }
+  return result;
 };
 
 const styles = StyleSheet.create({});

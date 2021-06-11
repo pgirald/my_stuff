@@ -348,24 +348,16 @@ export const addActivity = async (activity) => {
   return result;
 };
 
-export const getActivities = (projectId, limit, start, activityName) => {
-  return getData(getActivitiesQuery(projectId, limit, start, activityName));
-};
-
-const getActivitiesQuery = (projectId, limit, start, activityName) => {
-  const query = activityName
-    ? db
-        .collection("Projects")
-        .doc(projectId)
-        .collection("Activities")
-        .where("name", "==", activityName)
-    : db.collection("Projects").doc(projectId).collection("Activities");
-  return start
-    ? query
-        .orderBy("creationDate", "desc")
-        .startAfter(start.creationDate)
-        .limit(limit)
-    : query.orderBy("creationDate", "desc").limit(limit);
+export const getActivities = (projectId, limit, start, filterObj) => {
+  const collRef = db.collection("Projects").doc(projectId);
+  return getPagedData(
+    collRef,
+    "Activities",
+    filterObj,
+    start,
+    limit,
+    "creationDate"
+  );
 };
 
 export const deleteActivity = async (activity) => {
@@ -463,10 +455,16 @@ export const getTasks = (
   activityId,
   limit,
   start,
-  taskName
+  filterObj
 ) => {
-  return getData(
-    getTasksQuery(activitiesRoute, activityId, limit, start, taskName)
+  const collRef = db.collection(activitiesRoute).doc(activityId);
+  return getPagedData(
+    collRef,
+    "Tasks",
+    filterObj,
+    start,
+    limit,
+    "creationDate"
   );
 };
 
@@ -542,25 +540,16 @@ export const updateTask = async (task, data, previusData) => {
   return result;
 };
 
-export const getParticipants = async (projectId, limit, start) => {
-  return await getData(getParticipantsQuery(projectId, limit, start));
-};
-
-const getParticipantsQuery = (projectId, limit, start) => {
-  return start
-    ? db
-        .collection("Projects")
-        .doc(projectId)
-        .collection("ProjectParticipants")
-        .orderBy("creationDate", "desc")
-        .startAfter(start.creationDate)
-        .limit(limit)
-    : db
-        .collection("Projects")
-        .doc(projectId)
-        .collection("ProjectParticipants")
-        .orderBy("creationDate", "desc")
-        .limit(limit);
+export const getParticipants = (projectId, limit, start, filterObj) => {
+  const collRef = db.collection("Projects").doc(projectId);
+  return getPagedData(
+    collRef,
+    "ProjectParticipants",
+    filterObj,
+    start,
+    limit,
+    "creationDate"
+  );
 };
 
 export const acceptRequest = async (acceptedRequest) => {
@@ -596,6 +585,8 @@ export const acceptRequest = async (acceptedRequest) => {
     projectId: acceptedRequest.projectId,
     creationDate: new Date(),
     text: acceptedRequest.receiverEmail + " has joined",
+    email: acceptedRequest.receiverEmail,
+    action: "joined",
   });
   try {
     await batch.commit();
@@ -631,6 +622,8 @@ export const ejectParticipant = async (projectId, participant) => {
       participant.email === getCurrentUser().email
         ? participant.email + " has left"
         : participant.email + " has been ejected",
+    email: participant.email,
+    action: participant.email === getCurrentUser().email ? "left" : "ejected",
   });
   try {
     await batch.commit();
@@ -663,6 +656,8 @@ export const updateParticipantRole = async (
     projectId: projectId,
     creationDate: new Date(),
     text: participant.email + " is now a " + newRole,
+    email: participant.email,
+    action: "change to " + newRole,
   });
   try {
     await batch.commit();
@@ -673,23 +668,8 @@ export const updateParticipantRole = async (
   return result;
 };
 
-export const getRequests = async (limit, start) => {
-  return await getData(getRequestsQuery(limit, start));
-};
-
-const getRequestsQuery = (limit, start) => {
-  return start
-    ? db
-        .collection("Requests")
-        .where("receiverEmail", "==", getCurrentUser().email)
-        .orderBy("creationDate", "desc")
-        .startAfter(start.creationDate)
-        .limit(limit)
-    : db
-        .collection("Requests")
-        .where("receiverEmail", "==", getCurrentUser().email)
-        .orderBy("creationDate", "desc")
-        .limit(limit);
+export const getRequests = (limit, start, filterObj) => {
+  return getPagedData(db, "Requests", filterObj, start, limit, "creationDate");
 };
 
 export const addRequest = async (requestData) => {
@@ -746,25 +726,16 @@ export const denyRequest = async (requestId) => {
   return await deleteDocument(db.collection("Requests"), requestId);
 };
 
-export const getNotifications = async (projectId, limit, start) => {
-  return await getData(getNotificationsQuery(projectId, limit, start));
-};
-
-const getNotificationsQuery = (projectId, limit, start) => {
-  return start
-    ? db
-        .collection("Projects")
-        .doc(projectId)
-        .collection("Notifications")
-        .orderBy("creationDate", "desc")
-        .startAfter(start.creationDate)
-        .limit(limit)
-    : db
-        .collection("Projects")
-        .doc(projectId)
-        .collection("Notifications")
-        .orderBy("creationDate", "desc")
-        .limit(limit);
+export const getNotifications = (projectId, limit, start, filterObj) => {
+  const collRef = db.collection("Projects").doc(projectId);
+  return getPagedData(
+    collRef,
+    "Notifications",
+    filterObj,
+    start,
+    limit,
+    "creationDate"
+  );
 };
 
 export const sendNotifications = async (
@@ -877,10 +848,10 @@ const getPagedData = async (
   isGroup = false
 ) => {
   const result = { successful: true };
-  filterObj ||
-    (filterObj = {
-      orderFields: [{ name: defaultOrderField, direction: "DESC" }],
-    });
+  filterObj || (filterObj = {});
+  if (!filterObj.orderFields) {
+    filterObj.orderFields = [{ name: defaultOrderField, direction: "DESC" }];
+  }
   try {
     result.objects = await getData(
       ref,
@@ -892,7 +863,6 @@ const getPagedData = async (
     );
     result.start = result.objects[result.objects.length - 1];
   } catch (error) {
-    console.log("holalallala")
     result.successful = false;
     result.error = error;
   }

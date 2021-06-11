@@ -1,11 +1,11 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useContext, useRef, useState } from "react";
 import { FlatList } from "react-native";
 import FloatingButton from "../../Buttons/FloatingButton";
 import { AppContainer } from "../../Containers/AppContainer";
 import Loading from "../Loading";
 import { AppIcon } from "../../Icons/AppIcon";
 import {
-  onAddProjectBtnPress,
+  onAddObjectBtnPress,
   onFocus,
   onListEndReached,
   onFilterEnabled,
@@ -22,9 +22,10 @@ export default function AppObjectListComponent({
   getObjects,
   renderItem,
   FilterModal,
+  navigation,
+  options,
   limit = 11,
 }) {
-  const navigation = useNavigation();
   const modalRef = useRef();
   const filterModalRef = useRef();
   const [objects, setObjects] = useState([]);
@@ -46,8 +47,10 @@ export default function AppObjectListComponent({
 
   useFocusEffect(
     useCallback(() => {
+      options || (options = {});
       FilterModal &&
         navigation.setOptions({
+          ...options,
           headerRight: () => (
             <AppIcon
               name="magnify"
@@ -99,7 +102,7 @@ export default function AppObjectListComponent({
         <ModalForm
           modalRef={modalRef}
           onConfirm={(objectData) =>
-            onAddProjectBtnPress(
+            onAddObjectBtnPress(
               {
                 objectData,
                 setLoading,

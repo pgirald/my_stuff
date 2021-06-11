@@ -6,6 +6,7 @@ import { isEmpty } from "lodash";
 import TaskItem from "../../Components/ListItems/TaskItem";
 import { addTask, getTasks } from "../../Utils/Persistence/Actions";
 import { useFocusEffect } from "@react-navigation/native";
+import TasksFilterModal from "./TasksFilterModal";
 
 export default function TasksListScreen({
   activitiesRoute,
@@ -13,23 +14,16 @@ export default function TasksListScreen({
   navigation,
   role,
 }) {
-  useFocusEffect(
-    useCallback(() => {
-      navigation.setOptions({
-        headerRight: null,
-        title: "Tasks",
-      });
-    }, [])
-  );
   return (
     <AppObjectListComponent
+      options={{ title: "Tasks" }}
+      navigation={navigation}
       ModalForm={(args) =>
         AddTaskForm({ ...args, activityId: activity.id, activitiesRoute })
       }
       addObject={addTask}
-      getObjects={(limit) => getTasks(activitiesRoute, activity.id, limit)}
-      getMoreObjects={(limit, startActivity) =>
-        getTasks(activitiesRoute, activity.id, limit, startActivity)
+      getObjects={(limit, startActivity, filterObj) =>
+        getTasks(activitiesRoute, activity.id, limit, startActivity, filterObj)
       }
       createObject={createTask}
       renderItem={(task) => (
@@ -43,6 +37,7 @@ export default function TasksListScreen({
           }
         />
       )}
+      FilterModal={TasksFilterModal}
     />
   );
 }

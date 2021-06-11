@@ -4,18 +4,15 @@ import { StyleSheet, Text, View } from "react-native";
 import AppObjectListComponent from "../../Components/General/AppObectList/AppObjectListComponent";
 import AppItem from "../../Components/ListItems/AppItem";
 import { getNotifications } from "../../Utils/Persistence/Actions";
+import NotificationsFilterModal from "./NotificationsFilterModal";
 
 export default function Notifications({ navigation, projectId }) {
-  useFocusEffect(
-    useCallback(() => {
-      navigation.setOptions({ title: "Notifications", headerRight: null });
-    }, [])
-  );
   return (
     <AppObjectListComponent
-      getObjects={(limit) => getNotifications(projectId, limit)}
-      getMoreObjects={(limit, start) =>
-        getNotifications(projectId, limit, start)
+      options={{ title: "Notifications" }}
+      navigation={navigation}
+      getObjects={(limit, start, filterObj) =>
+        getNotifications(projectId, limit, start, filterObj)
       }
       renderItem={(notificationElement) => (
         <AppItem
@@ -36,6 +33,7 @@ export default function Notifications({ navigation, projectId }) {
           }
         />
       )}
+      FilterModal={NotificationsFilterModal}
     />
   );
 }

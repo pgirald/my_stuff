@@ -16,6 +16,8 @@ export default function ProjectsListScreen() {
   const navigation = useNavigation();
   return (
     <AppObjectListComponent
+      options={{ title: "Projects" }}
+      navigation={navigation}
       ModalForm={AddProjectForm}
       addObject={addProject}
       getObjects={(limit, startProject, filterObj) =>
